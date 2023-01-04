@@ -1,12 +1,18 @@
 // ignore_for_file: avoid_print
 
 import 'dart:io';
-import 'package:live_stream_app/pages/homepage.dart';
+import 'package:intl/intl.dart';
+import 'package:live_stream_app/models/stream_setting_model.dart';
+import 'package:live_stream_app/pages/go_live_page.dart';
+import 'package:live_stream_app/providers/stream_setting_providers.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+
+import '../components/custom_circular_indicator.dart';
 
 class EditPage extends StatefulWidget {
   const EditPage({super.key});
@@ -26,6 +32,8 @@ class _EditPageState extends State<EditPage> {
   File? image;
   String? loadImage;
   bool autovalidateMode = false;
+  String formattedDate = '';
+  String formattedTime = '';
 
   @override
   void initState() {
@@ -59,6 +67,95 @@ class _EditPageState extends State<EditPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
+        bottomSheet: _titleController.text.isEmpty
+            ? null
+            : Container(
+                width: size.width,
+                padding: const EdgeInsets.all(16.0),
+                child: InkWell(
+                  splashColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  onTap: _titleController.text.isEmpty
+                      ? () {
+                          _titleNode.requestFocus();
+                        }
+                      : () {
+                          if (_titleController.text.isNotEmpty) {
+                            FocusScope.of(context).unfocus();
+                            dateFormatter();
+                            setState(() {
+                              autovalidateMode = false;
+                            });
+
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (context) => circularIndicator2(),
+                            );
+
+                            Provider.of<StreamSettingProviders>(context,
+                                    listen: false)
+                                .setStream(
+                              StreamSettingModel(
+                                id: '1',
+                                streamId:
+                                    '6E3272357538782F413F442A472D4B6150645367566B59703373367639792442',
+                                userId: 'fe537494-426f-4bd2-b035-cd7083016d68',
+                                appId: '1cb68d7b-bfdb-4aae-986c-bb30220e6892',
+                                appSign: '2db5202d-6498-4f96-9331-e622feb860cf',
+                                title: _titleController.text.toString().trim(),
+                                desc: _descController.text.toString().trim(),
+                                thumb: image != null ? image! : null,
+                                generatedLink:
+                                    'https://www.youtube.com/watch?v=iDolh_ENaNQ',
+                                createdAt: formattedDate,
+                                updatedAt: formattedTime,
+                                status: '1',
+                              ),
+                            );
+                            Future.delayed(const Duration(seconds: 2), () {
+                              Navigator.pop(context);
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const GoLivePage()));
+                            });
+                          } else {
+                            setState(() {
+                              autovalidateMode = true;
+                            });
+                            print('Please fill all the required fileds');
+                          }
+                        },
+                  child: Container(
+                    width: size.width,
+                    height: 46.0,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(50.0),
+                      color: _titleController.text.isEmpty
+                          ? Colors.grey.shade400
+                          : Colors.deepPurple,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.06),
+                        )
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        _titleController.text.isEmpty
+                            ? 'Please add title'
+                            : 'Continue',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15.0,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
         body: CustomScrollView(
           slivers: [
             SliverAppBar(
@@ -321,50 +418,64 @@ class _EditPageState extends State<EditPage> {
                         ),
                       ),
                       const SizedBox(height: 32.0),
-                      InkWell(
-                        splashColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        onTap: () {
-                          if (_formKey.currentState!.validate()) {
-                            setState(() {
-                              autovalidateMode = false;
-                            });
+                      // InkWell(
+                      //   splashColor: Colors.transparent,
+                      //   highlightColor: Colors.transparent,
+                      //   onTap: _titleController.text.isEmpty
+                      //       ? () {
+                      //           _titleNode.requestFocus();
+                      //         }
+                      //       : () {
+                      //           if (_formKey.currentState!.validate()) {
+                      //             setState(() {
+                      //               autovalidateMode = false;
+                      //             });
 
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => const HomePage()));
-                          } else {
-                            setState(() {
-                              autovalidateMode = true;
-                            });
-                            print('Please fill all the required fileds');
-                          }
-                        },
-                        child: Container(
-                          width: size.width,
-                          height: 46.0,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(50.0),
-                            color: Colors.deepPurple,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.06),
-                              )
-                            ],
-                          ),
-                          child: const Center(
-                            child: Text(
-                              'Continue',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 15.0,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      //             showDialog(
+                      //               context: context,
+                      //               builder: (context) =>
+                      //                   CustomCircularIndicator(),
+                      //             );
+
+                      //             // Navigator.push(
+                      //             //     context,
+                      //             //     MaterialPageRoute(
+                      //             //         builder: (_) => const HomePage()));
+                      //           } else {
+                      //             setState(() {
+                      //               autovalidateMode = true;
+                      //             });
+                      //             print('Please fill all the required fileds');
+                      //           }
+                      //         },
+                      //   child: Container(
+                      //     width: size.width,
+                      //     height: 46.0,
+                      //     decoration: BoxDecoration(
+                      //       borderRadius: BorderRadius.circular(50.0),
+                      //       color: _titleController.text.isEmpty
+                      //           ? Colors.grey.shade400
+                      //           : Colors.deepPurple,
+                      //       boxShadow: [
+                      //         BoxShadow(
+                      //           color: Colors.black.withOpacity(0.06),
+                      //         )
+                      //       ],
+                      //     ),
+                      //     child: Center(
+                      //       child: Text(
+                      //         _titleController.text.isEmpty
+                      //             ? 'Please add title'
+                      //             : 'Continue',
+                      //         style: const TextStyle(
+                      //           color: Colors.white,
+                      //           fontSize: 15.0,
+                      //           fontWeight: FontWeight.w500,
+                      //         ),
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
@@ -376,6 +487,14 @@ class _EditPageState extends State<EditPage> {
     );
   }
 
+  void dateFormatter() {
+    DateTime now = DateTime.now();
+    formattedDate = DateFormat('EEEE, MMM d, yyyy').format(now);
+    formattedTime = DateFormat('HH:mm').format(DateTime.now());
+    print(formattedDate);
+    print(formattedTime);
+  }
+
   Widget bottomSheet(context, Size size) {
     return Container(
       width: size.width,
@@ -385,7 +504,7 @@ class _EditPageState extends State<EditPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           const Text(
-            'Choose profile photo',
+            'Choose Thumbnail photo',
             style: TextStyle(
               fontSize: 18.0,
               color: Colors.black,
